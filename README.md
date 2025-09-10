@@ -12,19 +12,33 @@ Tech Stack
 - APIs: [TMDB](https://developers.themoviedb.org/) (requires API key)  
 - Other: python-dotenv, requests 
 
-Project Structure
+## Project Structure
 
-├── app.py # FastAPI entrypoint (routes, template rendering)
-├── movie_picker.py # Core picking logic (scoring, weighted random)
-├── tmdb_fetch.py # CLI tool for seeding SQLite with TMDB movies
-├── db.py # DB helpers (connect, upsert_movie, get_candidates, etc.)
-├── movies.db # SQLite database (created after seeding)
+movie-picker/
+├── app.py
+├── movie_picker.py
+├── db.py
+├── tmdb_fetch.py
+├── bulk_seed.py
+├── schema.sql
+├── requirements.txt
+├── README.md
 ├── templates/
-│ └── index.html # Web UI template
+│ └── index.html
 ├── static/
-│ ├── style.css # CSS styling
-│ └── bbfc/ # BBFC age rating icons (U, PG, 12, 12A, 15, 18)
-└── README.md # This file
+│ ├── style.css
+│ └── bbfc/
+│ ├── U.svg.png
+│ ├── PG.svg.png
+│ ├── 12.svg.png
+│ ├── 12A.svg.png
+│ ├── 15.svg.png
+│ └── 18.svg.png
+└── docs/
+└── screenshots/
+├── filters.png
+├── result.png
+└── dropdowns.png
 
 Setup
 
