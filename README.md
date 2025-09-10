@@ -48,21 +48,21 @@ movie-picker/
    ```bash
    git clone https://github.com/sammaslen/projects/movie-picker.git
    cd movie-picker
-
+   ```
 2. Create a virtual environment
    ```bash
    python -m venv venv
    source venv/bin/activate   # Linux/Mac
    venv\Scripts\activate      # Windows
-
+   ```
 3. Install dependencies
    ```ini
    pip install -r requirements.txt
-
+   ```
 4. Set your TMDB API key
    Create a file tmdb.env in the project root:
    TMDB_API_KEY=your_tmdb_api_key_here
-
+   ```
 ## Seed the Database
 
 Run bulk_seed.py to seed the database. Make any tweaks you like to choose which type of films it gets.
@@ -70,7 +70,7 @@ Run bulk_seed.py to seed the database. Make any tweaks you like to choose which 
 ## Run the app
    ```bash
    uvicorn app:app --reload
-   
+   ```
 Then open your browser at http://127.0.0.1:8000/
 
 ## Screenshots
