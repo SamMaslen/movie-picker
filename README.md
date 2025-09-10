@@ -68,8 +68,9 @@ movie-picker/
 Run bulk_seed.py to seed the database. Make any tweaks you like to choose which type of films it gets.
 
 ## Run the app
-
+   ```bash
    uvicorn app:app --reload
+   
 Then open your browser at http://127.0.0.1:8000/
 
 ## Screenshots
