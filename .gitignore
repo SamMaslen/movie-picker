@@ -1,0 +1,24 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.sqlite3
+*.db
+
+# venvs
+venv/
+.venv/
+
+# dotenv / secrets
+tmdb.env
+
+# OS
+.DS_Store
+Thumbs.db
+
+# tools
+.pytest_cache/
+.mypy_cache/
+.vscode/
+.idea/

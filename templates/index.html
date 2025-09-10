@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>{{ request.app.title if request and request.app and request.app.title else "Movie Picker" }}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="/static/style.css" rel="stylesheet">
+</head>
+<body>
+  <main class="container">
+    <h1>🎬 Movie Picker</h1>
+
+    <form method="post" action="/pick" class="grid">
+      <section class="card">
+        <h2>Filters</h2>
+
+        <label>Genres</label>
+          <div class="dropdown genre-dropdown">
+            <button class="dropdown-btn" type="button" id="genreBtn">
+              <span id="genreSummary">
+                {% if selected_genres %}{{ selected_genres|length }} selected{% else %}Any genre{% endif %}
+              </span>
+              <svg width="16" height="16" viewBox="0 0 20 20" aria-hidden="true"><path d="M5 7l5 6 5-6H5z" fill="currentColor"/></svg>
+            </button>
+
+            <div class="dropdown-panel" id="genrePanel" hidden>
+              <input class="lang-filter" type="text" id="genreFilter" placeholder="Filter genres…">
+              <div class="lang-list" id="genreList">
+                {% for g in genres %}
+                  <label class="lang-item" data-label="{{ g|lower }}">
+                    <input type="checkbox" name="genres" value="{{ g }}"
+                          {% if g in selected_genres %}checked{% endif %}>
+                    <span class="label">{{ g }}</span>
+                  </label>
+                {% endfor %}
+              </div>
+              <div class="dropdown-actions">
+                <button type="button" id="genreClear" class="secondary">Clear</button>
+                <button type="button" id="genreClose">Done</button>
+              </div>
+            </div>
+          </div>
+
+        <div class="row">
+          <div>
+            <label>Year min</label>
+            <input type="number" name="ymin" value="{{ defaults.ymin }}">
+          </div>
+          <div>
+            <label>Year max</label>
+            <input type="number" name="ymax" value="{{ defaults.ymax }}">
+          </div>
+        </div>
+
+        <div class="row">
+          <div>
+            <label>Runtime min (minutes)</label>
+            <input type="number" name="rtmin" value="{{ defaults.rtmin }}">
+          </div>
+          <div>
+            <label>Runtime max (minutes)</label>
+            <input type="number" name="rtmax" value="{{ defaults.rtmax }}">
+          </div>
+        </div>
+
+        <div class="row">
+          <div>
+            <label>Min user rating (0–10)</label>
+            <input type="number" name="minr" step="0.1" min="0" max="10" value="{{ defaults.minr }}">
+          </div>
+          <div>
+            <label>Languages</label>
+              <div class="dropdown lang-dropdown">
+                <button class="dropdown-btn" type="button" id="langBtn">
+                  <span id="langSummary">
+                    {% if selected_languages %}{{ selected_languages|length }} selected{% else %}Any language{% endif %}
+                  </span>
+                  <svg width="16" height="16" viewBox="0 0 20 20" aria-hidden="true"><path d="M5 7l5 6 5-6H5z" fill="currentColor"/></svg>
+                </button>
+
+                <div class="dropdown-panel" id="langPanel" hidden>
+                  <input class="lang-filter" type="text" id="langFilter" placeholder="Filter languages…">
+                  <div class="lang-list" id="langList">
+                    {% for code in languages %}
+                      {% set label = LANG_MAP.get(code, code|upper) %}
+                      <label class="lang-item" data-label="{{ label|lower }} {{ code|lower }}">
+                        <input type="checkbox" name="languages" value="{{ code }}"
+                              {% if code in selected_languages %}checked{% endif %}>
+                        <span class="flag">{{ code|upper }}</span>
+                        <span class="label">{{ label }}</span>
+                      </label>
+                    {% endfor %}
+                  </div>
+                  <div class="dropdown-actions">
+                    <button type="button" id="langClear" class="secondary">Clear</button>
+                    <button type="button" id="langClose">Done</button>
+                  </div>
+                </div>
+              </div>
+
+            <!-- Dropdown JS for both Genres and Languages dropdowns -->
+            <script>
+              (function(){
+                function initMultiDropdown(prefix, summaryDefaultText) {
+                  const btn     = document.getElementById(prefix + 'Btn');
+                  const panel   = document.getElementById(prefix + 'Panel');
+                  const filter  = document.getElementById(prefix + 'Filter');
+                  const list    = document.getElementById(prefix + 'List');
+                  const summary = document.getElementById(prefix + 'Summary');
+                  const clearBtn= document.getElementById(prefix + 'Clear');
+                  const closeBtn= document.getElementById(prefix + 'Close');
+
+                  function updateSummary(){
+                    const n = list.querySelectorAll('input[type="checkbox"]:checked').length;
+                    summary.textContent = n ? (n + ' selected') : summaryDefaultText;
+                  }
+                  function openPanel(){ panel.hidden = false; filter.focus(); }
+                  function closePanel(){ panel.hidden = true; }
+
+                  btn.addEventListener('click', () => panel.hidden ? openPanel() : closePanel());
+                  document.addEventListener('click', (e) => {
+                    if (!panel.hidden && !panel.contains(e.target) && !btn.contains(e.target)) closePanel();
+                  });
+                  list.addEventListener('change', updateSummary);
+                  clearBtn.addEventListener('click', () => {
+                    list.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
+                    updateSummary(); filter.value=''; Array.from(list.children).forEach(el => el.hidden = false);
+                  });
+                  closeBtn.addEventListener('click', closePanel);
+                  filter.addEventListener('input', () => {
+                    const q = filter.value.trim().toLowerCase();
+                    Array.from(list.children).forEach(el => { el.hidden = q && !el.dataset.label.includes(q); });
+                  });
+
+                  updateSummary(); // init
+                }
+
+                // Init both dropdowns
+                initMultiDropdown('lang',  'Any language');
+                initMultiDropdown('genre', 'Any genre');
+              })();
+            </script>
+          </div>
+        </div>
+
+        <fieldset class="ages">
+          <legend>Allowed UK age ratings</legend>
+
+          <label class="age-chip">
+            <input type="checkbox" name="age_U"  {% if defaults.ages['U'] %}checked{% endif %}>
+            <img class="bbfc-icon" src="/static/bbfc/U.svg.png" alt="BBFC U" title="U — Suitable for all">
+            <span>U</span>
+          </label>
+
+          <label class="age-chip">
+            <input type="checkbox" name="age_PG" {% if defaults.ages['PG'] %}checked{% endif %}>
+            <img class="bbfc-icon" src="/static/bbfc/PG.svg.png" alt="BBFC PG" title="PG — Parental guidance">
+            <span>PG</span>
+          </label>
+
+          <label class="age-chip">
+            <input type="checkbox" name="age_12" {% if defaults.ages['12'] %}checked{% endif %}>
+            <img class="bbfc-icon" src="/static/bbfc/12.svg.png" alt="BBFC 12" title="12 — 12 and over">
+            <span>12</span>
+          </label>
+
+          <label class="age-chip">
+            <input type="checkbox" name="age_12A" {% if defaults.ages['12A'] %}checked{% endif %}>
+            <img class="bbfc-icon" src="/static/bbfc/12A.svg.png" alt="BBFC 12A" title="12A — 12 with adult">
+            <span>12A</span>
+          </label>
+
+          <label class="age-chip">
+            <input type="checkbox" name="age_15" {% if defaults.ages['15'] %}checked{% endif %}>
+            <img class="bbfc-icon" src="/static/bbfc/15.svg.png" alt="BBFC 15" title="15 — 15 and over">
+            <span>15</span>
+          </label>
+
+          <label class="age-chip">
+            <input type="checkbox" name="age_18" {% if defaults.ages['18'] %}checked{% endif %}>
+            <img class="bbfc-icon" src="/static/bbfc/18.svg.png" alt="BBFC 18" title="18 — Adults only">
+            <span>18</span>
+          </label>
+        </fieldset>
+
+        <div class="actions">
+          <button type="submit">Pick Movie</button>
+        </div>
+      </section>
+
+        <section class="card">
+        <h2>Result</h2>
+        {% if result is none %}
+            <p class="muted">Fill filters and press <strong>Pick Movie</strong>.</p>
+        {% elif result.error %}
+            <p class="error">{{ result.error }}</p>
+        {% else %}
+            <div class="result-grid">
+            <div class="poster">
+              {% if result.movie.poster_path %}
+                <img alt="Poster for {{ result.movie.title }}"
+                    src="{{ IMAGE_BASE }}{{ result.movie.poster_path }}">
+              {% else %}
+                <div class="poster-fallback">No poster</div>
+              {% endif %}
+
+              {% if result.movie.genres %}
+                <ul class="genre-chips">
+                  {% for g in result.movie.genres %}
+                    <li class="chip">{{ g }}</li>
+                  {% endfor %}
+                </ul>
+              {% endif %}
+            </div>
+            <div class="result-details">
+                <h3>
+                {{ result.movie.title }}
+                <small class="meta">({{ result.movie.year or '—' }})</small>
+                </h3>
+                <p class="meta">
+                  {% if result.movie.age_rating %}
+                    <img class="bbfc-icon" alt="BBFC {{ result.movie.age_rating }}" 
+                        src="/static/bbfc/{{ result.movie.age_rating }}.svg.png">
+                  {% endif %}
+                  {{ (result.movie.rating ~ '/10') if result.movie.rating is not none else '—' }}
+                  • {{ (result.movie.runtime ~ ' min') if result.movie.runtime is not none else '—' }}
+                  • {{ LANG_MAP.get(result.movie.language, result.movie.language|upper) }}
+                  • <a href="https://www.themoviedb.org/movie/{{ result.movie.id }}" target="_blank" rel="noopener">TMDB</a>
+                </p>
+                {% if result.movie.overview %}
+                <p class="overview">{{ result.movie.overview }}</p>
+                {% endif %}
+            </div>
+            </div>
+
+            {% endif %}
+        </section>
+    </form>
+  </main>
+</body>
+</html>
