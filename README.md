@@ -62,7 +62,7 @@ movie-picker/
 4. Set your TMDB API key
    Create a file tmdb.env in the project root:
    TMDB_API_KEY=your_tmdb_api_key_here
-   ```
+   
 ## Seed the Database
 
 Run bulk_seed.py to seed the database. Make any tweaks you like to choose which type of films it gets.
